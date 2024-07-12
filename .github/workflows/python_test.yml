@@ -1,4 +1,4 @@
-name: Python construction
+name: Python test
 
 on:
     push:
@@ -7,6 +7,21 @@ on:
 jobs:
     test:
         runs-on: ubuntu-latest
+
+        services:
+            mysql:
+              image: mysql:latest
+              ports:
+                - 3306:3306
+              options: >-
+                --health-cmd="mysqladmin ping --silent"
+                --health-interval=10s
+                --health-timeout=5s
+                --health-retries=3
+              env:
+                MYSQL_ROOT_PASSWORD: seguro1234
+                MYSQL_DATABASE: books
+
         steps:
             - name: Hacer checkout del proyecto
               uses: actions/checkout@v4
@@ -20,6 +35,8 @@ jobs:
               run: pip install -r requirements.txt
 
             - name: Ejecución de Pruebas
+              env:
+                SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:seguro1234@localhost:3306/books"
               run: pytest test_main.py
     
             - name: Compilación exitosa
